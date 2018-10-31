@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "compat",
     "example-service",
     "rpc",
     "trace",

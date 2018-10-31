@@ -28,7 +28,7 @@ async fn run(server_addr: SocketAddr, name: String) -> io::Result<()> {
     // The client has an RPC method for each RPC defined in service!. It takes the same args
     // as defined, with the addition of a Context, which is always the first arg. The Context
     // specifies a deadline and trace information which can be helpful in debugging requests.
-    let hello = await!(client.hello(context::current(), name))?;
+    let hello = await!(client.hello(context::current(), name, "".into()))?;
 
     println!("{}", hello);
 

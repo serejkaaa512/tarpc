@@ -17,5 +17,6 @@
 // It defines one RPC, hello, which takes one arg, name, and returns a String.
 tarpc::service! {
     /// Returns a greeting for name.
-    rpc hello(name: String) -> String;
+    rpc hello(first: String, last: String) -> String;
+    rpc add(x: i32, y: i32) -> i32;
 }
