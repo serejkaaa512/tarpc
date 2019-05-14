@@ -8,6 +8,7 @@
 
 #![feature(async_await)]
 
+use chrono::prelude::*;
 use futures::{
     compat::{Executor01CompatExt, Future01CompatExt},
     prelude::*,
@@ -26,7 +27,7 @@ pub trait AsDuration {
     fn as_duration(&self) -> Duration;
 }
 
-impl AsDuration for SystemTime {
+impl<T> AsDuration for DateTime<T> {
     fn as_duration(&self) -> Duration {
         self.duration_since(SystemTime::now()).unwrap_or_default()
     }

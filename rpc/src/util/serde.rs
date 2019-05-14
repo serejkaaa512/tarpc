@@ -10,26 +10,6 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-/// Serializes `system_time` as a `u64` equal to the number of seconds since the epoch.
-pub fn serialize_epoch_secs<S>(system_time: &SystemTime, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    system_time
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap_or(Duration::from_secs(0))
-        .as_secs() // Only care about second precision
-        .serialize(serializer)
-}
-
-/// Deserializes [`SystemTime`] from a `u64` equal to the number of seconds since the epoch.
-pub fn deserialize_epoch_secs<'de, D>(deserializer: D) -> Result<SystemTime, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(SystemTime::UNIX_EPOCH + Duration::from_secs(u64::deserialize(deserializer)?))
-}
-
 /// Serializes [`io::ErrorKind`] as a `u32`.
 #[allow(clippy::trivially_copy_pass_by_ref)] // Exact fn signature required by serde derive
 pub fn serialize_io_error_kind_as_u32<S>(

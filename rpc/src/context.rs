@@ -7,6 +7,7 @@
 //! Provides a request context that carries a deadline and trace context. This context is sent from
 //! client to server and is used by the server to enforce response deadlines.
 
+use chrono::prelude::*;
 use std::time::{Duration, SystemTime};
 use trace::{self, TraceId};
 
@@ -20,7 +21,7 @@ use trace::{self, TraceId};
 pub struct Context {
     /// When the client expects the request to be complete by. The server should cancel the request
     /// if it is not complete by this time.
-    pub deadline: SystemTime,
+    pub deadline: DateTime<Utc>,
     /// Uniquely identifies requests originating from the same source.
     /// When a service handles a request by making requests itself, those requests should
     /// include the same `trace_id` as that included on the original request. This way,

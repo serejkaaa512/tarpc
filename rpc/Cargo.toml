@@ -14,12 +14,12 @@ description = "An RPC framework for Rust with a focus on ease of use."
 
 [features]
 default = []
-serde1 = ["trace/serde", "serde", "serde/derive"]
+serde1 = ["chrono/serde", "trace/serde", "serde", "serde/derive"]
 
 [dependencies]
+chrono = "*"
 fnv = "1.0"
 futures-preview = { version = "0.3.0-alpha.16", features = ["compat"] }
-humantime = "1.0"
 log = "0.4"
 pin-utils = "0.1.0-alpha.4"
 rand = "0.6"

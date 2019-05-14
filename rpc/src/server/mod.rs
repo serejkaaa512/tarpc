@@ -10,6 +10,7 @@ use crate::{
     context, util::deadline_compat, util::AsDuration, util::Compact, ClientMessage,
     ClientMessageKind, PollIo, Request, Response, ServerError, Transport,
 };
+use chrono::prelude::*;
 use fnv::FnvHashMap;
 use futures::{
     channel::mpsc,
@@ -20,7 +21,6 @@ use futures::{
     task::{Context, Poll},
     try_ready,
 };
-use humantime::format_rfc3339;
 use log::{debug, error, info, trace, warn};
 use pin_utils::{unsafe_pinned, unsafe_unpinned};
 use std::{
@@ -477,7 +477,7 @@ where
             "[{}/{}] Received request with deadline {} (timeout {:?}).",
             ctx.trace_id(),
             peer,
-            format_rfc3339(deadline),
+            deadline,
             timeout,
         );
         let mut response_tx = self.as_mut().responses_tx().clone();
@@ -589,21 +589,21 @@ fn make_server_error(
     e: timeout::Error<io::Error>,
     trace_id: TraceId,
     peer: SocketAddr,
-    deadline: SystemTime,
+    deadline: DateTime<Utc>,
 ) -> ServerError {
     if e.is_elapsed() {
         debug!(
             "[{}/{}] Response did not complete before deadline of {}s.",
             trace_id,
             peer,
-            format_rfc3339(deadline)
+            deadline
         );
         // No point in responding, since the client will have dropped the request.
         ServerError {
             kind: io::ErrorKind::TimedOut,
             detail: Some(format!(
                 "Response did not complete before deadline of {}s.",
-                format_rfc3339(deadline)
+                deadline
             )),
         }
     } else if e.is_timer() {

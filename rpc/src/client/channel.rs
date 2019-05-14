@@ -18,7 +18,6 @@ use futures::{
     task::Context,
     Poll,
 };
-use humantime::format_rfc3339;
 use log::{debug, error, info, trace};
 use pin_utils::{unsafe_pinned, unsafe_unpinned};
 use std::{
@@ -125,7 +124,7 @@ impl<Req, Resp> Channel<Req, Resp> {
             "[{}/{}] Queuing request with deadline {} (timeout {:?}).",
             ctx.trace_id(),
             self.server_addr,
-            format_rfc3339(ctx.deadline),
+            ctx.deadline,
             timeout,
         );
 

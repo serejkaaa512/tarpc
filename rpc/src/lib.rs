@@ -39,6 +39,7 @@ pub(crate) mod util;
 
 pub use crate::{client::Client, server::Server, transport::Transport};
 
+use chrono::prelude::*;
 use futures::{
     task::{Poll, Spawn, SpawnError, SpawnExt},
     Future,
@@ -92,13 +93,9 @@ pub struct Request<T> {
     /// if it is not complete by this time.
     #[cfg_attr(
         feature = "serde1",
-        serde(serialize_with = "util::serde::serialize_epoch_secs")
+        serde(with = "chrono::serde::ts_seconds")
     )]
-    #[cfg_attr(
-        feature = "serde1",
-        serde(deserialize_with = "util::serde::deserialize_epoch_secs")
-    )]
-    pub deadline: SystemTime,
+    pub deadline: DateTime<Utc>,
 }
 
 /// A response from a server to a client.
