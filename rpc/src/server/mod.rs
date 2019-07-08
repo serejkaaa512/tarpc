@@ -484,19 +484,21 @@ where
         let trace_id = *ctx.trace_id();
         let response = self.as_mut().f().clone()(ctx, request);
         let response = deadline_compat::Deadline::new(response, Instant::now() + timeout).then(
-            async move |result| {
-                let response = Response {
-                    request_id,
-                    message: match result {
-                        Ok(message) => Ok(message),
-                        Err(e) => Err(make_server_error(e, trace_id, peer, deadline)),
-                    },
-                };
-                trace!("[{}/{}] Sending response.", trace_id, peer);
-                response_tx
-                    .send((ctx, response))
-                    .unwrap_or_else(|_| ())
-                    .await;
+            move |result| {
+                async move {
+                    let response = Response {
+                        request_id,
+                        message: match result {
+                            Ok(message) => Ok(message),
+                            Err(e) => Err(make_server_error(e, trace_id, peer, deadline)),
+                        },
+                    };
+                    trace!("[{}/{}] Sending response.", trace_id, peer);
+                    response_tx
+                        .send((ctx, response))
+                        .unwrap_or_else(|_| ())
+                        .await;
+                }
             },
         );
         let (abortable_response, abort_handle) = abortable(response);

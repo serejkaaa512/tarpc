@@ -39,38 +39,41 @@ async fn run() -> io::Result<()> {
     let server = Server::<String, String>::default()
         .incoming(listener)
         .take(1)
-        .for_each(async move |channel| {
-            let channel = if let Ok(channel) = channel {
-                channel
-            } else {
-                return;
-            };
-            let client_addr = *channel.client_addr();
-            let handler = channel.respond_with(move |ctx, request| {
-                // Sleep for a time sampled from a normal distribution with:
-                // - mean: 1/2 the deadline.
-                // - std dev: 1/2 the deadline.
-                let deadline: Duration = ctx.deadline.as_duration();
-                let deadline_millis = deadline.as_secs() * 1000 + deadline.subsec_millis() as u64;
-                let distribution =
-                    Normal::new(deadline_millis as f64 / 2., deadline_millis as f64 / 2.);
-                let delay_millis = distribution.sample(&mut rand::thread_rng()).max(0.);
-                let delay = Duration::from_millis(delay_millis as u64);
+        .for_each(move |channel| {
+            async move {
+                let channel = if let Ok(channel) = channel {
+                    channel
+                } else {
+                    return;
+                };
+                let client_addr = *channel.client_addr();
+                let handler = channel.respond_with(move |ctx, request| {
+                    // Sleep for a time sampled from a normal distribution with:
+                    // - mean: 1/2 the deadline.
+                    // - std dev: 1/2 the deadline.
+                    let deadline: Duration = ctx.deadline.as_duration();
+                    let deadline_millis =
+                        deadline.as_secs() * 1000 + deadline.subsec_millis() as u64;
+                    let distribution =
+                        Normal::new(deadline_millis as f64 / 2., deadline_millis as f64 / 2.);
+                    let delay_millis = distribution.sample(&mut rand::thread_rng()).max(0.);
+                    let delay = Duration::from_millis(delay_millis as u64);
 
-                trace!(
-                    "[{}/{}] Responding to request in {:?}.",
-                    ctx.trace_id(),
-                    client_addr,
-                    delay,
-                );
+                    trace!(
+                        "[{}/{}] Responding to request in {:?}.",
+                        ctx.trace_id(),
+                        client_addr,
+                        delay,
+                    );
 
-                let wait = Delay::new(Instant::now() + delay).compat();
-                async move {
-                    wait.await.unwrap();
-                    Ok(request)
-                }
-            });
-            tokio_executor::spawn(handler.unit_error().boxed().compat());
+                    let wait = Delay::new(Instant::now() + delay).compat();
+                    async move {
+                        wait.await.unwrap();
+                        Ok(request)
+                    }
+                });
+                tokio_executor::spawn(handler.unit_error().boxed().compat());
+            }
         });
 
     tokio_executor::spawn(server.unit_error().boxed().compat());
