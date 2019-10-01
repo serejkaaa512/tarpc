@@ -39,7 +39,7 @@ where
 {
     type Item = io::Result<Item>;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<io::Result<Item>>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<io::Result<Item>>> {
         match self.project().inner.poll_next(cx) {
             Poll::Pending => Poll::Pending,
             Poll::Ready(None) => Poll::Ready(None),
@@ -58,22 +58,22 @@ where
 {
     type Error = io::Error;
 
-    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         convert(self.project().inner.poll_ready(cx))
     }
 
-    fn start_send(self: Pin<&mut Self>, item: SinkItem) -> io::Result<()> {
+    fn start_send(mut self: Pin<&mut Self>, item: SinkItem) -> io::Result<()> {
         self.project()
             .inner
             .start_send(item)
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
     }
 
-    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         convert(self.project().inner.poll_flush(cx))
     }
 
-    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         convert(self.project().inner.poll_close(cx))
     }
 }
@@ -177,7 +177,7 @@ where
 {
     type Item = io::Result<Transport<TcpStream, Item, SinkItem>>;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let next = ready!(self.project().incoming.poll_next(cx)?);
         Poll::Ready(next.map(|conn| Ok(new(conn))))
     }
